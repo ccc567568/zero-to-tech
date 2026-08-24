@@ -23,5 +23,6 @@ backend/api_demo.py
 backend/first_json.py
 backend/handmade.py
 *.pyc
+.cursor
 
 .vscode

@@ -12,13 +12,15 @@ import PageHeading from "./PageHeading.jsx";
 import AnimatedCardGrid from "./AnimatedCardGrid.jsx";
 import { home } from "../data/site.js";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function HomeView() {
   const [data, setData] = useState(home);
 
   useEffect(() => {
     async function loadProfile() {
       try {
-        const res = await fetch("http://localhost:8000/api/profile");
+        const res = await fetch(`${API_URL}/api/profile`);
         if (!res.ok) {
           throw new Error(`主页数据加载失败：${res.status}`);
         }
