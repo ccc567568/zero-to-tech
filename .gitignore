@@ -26,3 +26,5 @@ backend/handmade.py
 .cursor
 
 .vscode
+backend/*.db
+
