@@ -6,13 +6,18 @@ from snownlp import SnowNLP
 from storage import save_record, get_history, init_db 
 from datetime import datetime, timezone
 import uuid
+import os
+from dotenv import load_dotenv
 
+load_dotenv() 
+
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS")
 init_db()
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["ALLOWED_ORIGINS"],
     allow_credentials=True,
     allow_methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 )

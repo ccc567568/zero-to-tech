@@ -1,60 +1,28 @@
-import sqlite3
+import json
 
-DB_FILE = "history.db"
+HISTORY_FILE = "history.json"
 
-def get_conn():   # 获取数据库连接
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row # 让查询结果带上字段名
-    return conn
+def load_history():
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
 
-def init_db():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id TEXT,
-        text TEXT,
-        score REAL,
-        label TEXT,
-        pinyin TEXT,
-        created_at TEXT
-    )
-    """)
-    cur.execute(
-        "CREATE INDEX IF NOT EXISTS idx_history_session_created "
-        "ON history(session_id, created_at)"
-    )
-    conn.commit()
-    conn.close()
+def save_record(record):
+    records = load_history()
+    records.append(record)
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
 
-
-def save_record(session_id, record):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO history (session_id, text, score, label, pinyin, created_at)"
-        " VALUES (?, ?, ?, ?, ?, ?)",
-        [session_id, record["text"], record["score"],
-         record["label"], record["pinyin"], record["created_at"]],
-    )
-    conn.commit()
-    conn.close()
-
-def get_history(session_id, limit):
-    conn = get_conn()
-    cur = conn.cursor()
-    rows = cur.execute(
-        "SELECT * FROM history WHERE session_id = ? ORDER BY created_at DESC LIMIT ?",
-        [session_id, limit],
-    ).fetchall()
-    conn.close()
-
-    records = []
-    for row in rows:
-        records.append(dict(row))
-    return records
-
-
-
+def get_history(all: bool = False):
+    records = load_history()
+    total = len(records)
+    records.reverse()
+    if not all:
+        records = records[:10]
+    return {
+        "records": records,
+        "total": total,
+    }
 
