@@ -9,37 +9,52 @@ def get_conn():   # 获取数据库连接
 
 def init_db():
     conn = get_conn()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT NOT NULL,
-            score REAL NOT NULL,
-            label TEXT NOT NULL,
-            pinyin TEXT NOT NULL,
-            created_at DATETIME NOT NULL
-        )
+    cur = conn.cursor()
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT,
+        text TEXT,
+        score REAL,
+        label TEXT,
+        pinyin TEXT,
+        created_at TEXT
+    )
     """)
+    cur.execute(
+        "CREATE INDEX IF NOT EXISTS idx_history_session_created "
+        "ON history(session_id, created_at)"
+    )
     conn.commit()
     conn.close()
 
-def save_record(record):
+
+def save_record(session_id, record):
     conn = get_conn()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO history (text, score, label, pinyin, created_at) VALUES (?, ?, ?, ?, ?)", (record['text'], record['score'], record['label'], record['pinyin'], record['created_at']))
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO history (session_id, text, score, label, pinyin, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        [session_id, record["text"], record["score"],
+         record["label"], record["pinyin"], record["created_at"]],
+    )
     conn.commit()
     conn.close()
 
-def get_history(limit):
+def get_history(session_id, limit):
     conn = get_conn()
-    cursor = conn.cursor()
-    rows = cursor.execute("SELECT * FROM history ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
-    conn.close()    # 关闭数据库连接
-    
+    cur = conn.cursor()
+    rows = cur.execute(
+        "SELECT * FROM history WHERE session_id = ? ORDER BY created_at DESC LIMIT ?",
+        [session_id, limit],
+    ).fetchall()
+    conn.close()
+
     records = []
-    for row in records:
+    for row in rows:
         records.append(dict(row))
     return records
+
 
 
 
